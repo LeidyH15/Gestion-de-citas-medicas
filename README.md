@@ -1,6 +1,6 @@
 # Desarrollo de Microservicios para Gestión de Citas Médicas
 
-# Fecha de elavoración y terminacion: 28 de febrero del 2025
+Fecha de elavoración: 28 de febrero del 2025
 
 ## Descripción General
 Desarrollo tres microservicios interconectados: "Personas", "Citas" y "Recetas", que permitan la gestión completa de citas médicas y recetas asociadas:
