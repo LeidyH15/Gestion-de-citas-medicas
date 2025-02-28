@@ -55,7 +55,7 @@ namespace MicroserviceCitas.Application.Services
             return await _citaRepository.Create(cita);
         }
 
-        //PENDIENTE IMPLEMENTACION RABBIT MQ
+        
         public async Task<string> Finish(int id, RecetaDTO recetaDto)
         {
             var cita = await _citaRepository.GetById(id);
@@ -68,8 +68,6 @@ namespace MicroserviceCitas.Application.Services
             var finish = await _citaRepository.Finish(cita);
             return finish;
         }
-
-        //ESPACIO PARA RABBIT MQ
 
         public async Task<string> Update(int id, CitaDTO citaDto)
         {

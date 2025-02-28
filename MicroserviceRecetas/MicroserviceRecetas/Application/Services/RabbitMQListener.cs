@@ -58,7 +58,6 @@ namespace MicroserviceRecetas.Application.Services
                     var message = Encoding.UTF8.GetString(body);
                     var receta = JsonConvert.DeserializeObject<RecetaDTO>(message);
 
-                    // Procesar la receta recibida
                     await HandleReceta(receta);
                 };
 
