@@ -44,7 +44,7 @@ namespace MicroserviceRecetas.Application.Services
                 return "El médico no existe.";
             }
 
-            if (medico.Id != cita.IdMedico)
+            if (medico.Identificacion != cita.IdMedico.ToString())
             {
                 return "El médico no pertenece a la cita.";
             }
@@ -55,7 +55,7 @@ namespace MicroserviceRecetas.Application.Services
                 return "El paciente no existe.";
             }
 
-            if (paciente.Id != cita.IdPaciente)
+            if (paciente.Identificacion != cita.IdPaciente.ToString())
             {
                 return "El paciente no pertenece a la cita.";
             }

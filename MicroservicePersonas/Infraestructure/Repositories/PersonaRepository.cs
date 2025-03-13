@@ -4,9 +4,7 @@ using MicroservicePersonas.Infraestructure.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace MicroservicePersonas.Infraestructure.Repositories
 {
@@ -93,6 +91,13 @@ namespace MicroservicePersonas.Infraestructure.Repositories
             }
         }
 
-    }
+        public async Task<int> AddAsync(Persona persona)
+        {
+            _context.Personas.Add(persona);
+            return await _context.SaveChangesAsync();
+        }
+
 
     }
+
+}

@@ -6,7 +6,7 @@ namespace MicroserviceCitas.Application.Interfaces
 {
     public interface ICitaService
     {
-    Task<Cita> GetById(int id);
+    Task<CitaDTO> GetById(int id);
     Task<string> Create(CitaDTO citaDto);
     Task<string> Finish(int id, RecetaDTO recetaDto);
     Task<string> Update(int id, CitaDTO citaDto);

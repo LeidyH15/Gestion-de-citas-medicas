@@ -1,9 +1,9 @@
 ﻿using MicroserviceCitas.Application.DTOs;
 using MicroserviceCitas.Application.Interfaces;
 using RestSharp;
-using System;
 using System.Configuration;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace MicroserviceCitas.Application.Services
 {
@@ -11,6 +11,7 @@ namespace MicroserviceCitas.Application.Services
     {
         private readonly RestClient _client;
         private readonly string _uri;
+
 
         public PersonaService()
         {
@@ -33,7 +34,14 @@ namespace MicroserviceCitas.Application.Services
             var request = new RestRequest(_uri, Method.Get);
             request.AddParameter("TipoPersona", tipoPersona);
             request.AddParameter("Identificacion", identificacion);
-                        
+
+            // Token JWT MicroservicePersonas
+            string token = HttpContext.Current?.Request.Headers["Authorization"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                request.AddHeader("Authorization", token);
+            }
+
             var response = await _client.ExecuteAsync<PersonaDTO>(request);
 
             if (response.IsSuccessful && response.Data != null)
@@ -43,5 +51,6 @@ namespace MicroserviceCitas.Application.Services
                         
             return null; 
         }
+
     }
 }

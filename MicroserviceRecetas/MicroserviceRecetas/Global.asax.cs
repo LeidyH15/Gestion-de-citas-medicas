@@ -1,4 +1,5 @@
 using AutoMapper;
+using MediatR;
 using MicroserviceRecetas.Application.Interfaces;
 using MicroserviceRecetas.Application.Mappings;
 using MicroserviceRecetas.Application.Services;
@@ -8,6 +9,9 @@ using MicroserviceRecetas.Infraestructure.Repositories;
 using SimpleInjector;
 using SimpleInjector.Integration.WebApi;
 using SimpleInjector.Lifestyles;
+using System.Linq;
+using System.Reflection;
+using System;
 using System.Threading;
 using System.Web.Http;
 using Container = SimpleInjector.Container;
@@ -26,6 +30,9 @@ namespace MicroserviceRecetas
 
             // Registro de dependencias
             RegisterDependencies(container);
+
+            // Registrar MediatR
+            RegisterMediatR(container);
 
             // Registrar controladores
             container.RegisterWebApiControllers(GlobalConfiguration.Configuration);
@@ -75,8 +82,36 @@ namespace MicroserviceRecetas
                 }
             });
 
-            listenerThread.IsBackground = true; 
+            listenerThread.IsBackground = true;
             listenerThread.Start();
+        }
+
+        private void RegisterMediatR(Container container)
+        {
+            if (!container.GetCurrentRegistrations().Any(r => r.ServiceType == typeof(IMediator)))
+            {
+                container.RegisterSingleton<IMediator>(() => new Mediator(container.GetInstance<ServiceFactory>()));
+            }
+
+            var assemblies = new[]
+            {
+        Assembly.GetExecutingAssembly(),
+        typeof(MicroserviceRecetas.Application.Queries.GetRecetaByIdQuery).Assembly };
+
+            container.Collection.Register(typeof(IPipelineBehavior<,>), Enumerable.Empty<Type>());
+
+            // Registrar MediatR como Singleton
+            //container.RegisterSingleton<IMediator, Mediator>();
+
+            // Registrar los manejadores de solicitudes (queries y comandos)
+            container.Register(typeof(IRequestHandler<,>), assemblies);
+            container.Register(typeof(IRequestHandler<>), assemblies);
+
+            // Registrar ServiceFactory correctamente
+            container.RegisterInstance<ServiceFactory>(type => container.GetInstance(type));
+
+            // Registrar Mediator con su ServiceFactory
+            //container.RegisterSingleton<IMediator>(() => new Mediator(container.GetInstance<ServiceFactory>()));
         }
     }
 }

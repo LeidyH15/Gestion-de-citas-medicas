@@ -22,11 +22,11 @@ namespace MicroserviceCitas.Application.Services
             _rabbitMqSender = rabbitMqSender;
         }
 
-        public async Task<Cita> GetById(int id)
+        public async Task<CitaDTO> GetById(int id)
         {
             var cita = await _citaRepository.GetById(id);
             if (cita == null) return null;
-            return cita;
+            return _mapper.Map<CitaDTO>(cita);
         }
 
         public async Task<string> Create(CitaDTO citaDto)

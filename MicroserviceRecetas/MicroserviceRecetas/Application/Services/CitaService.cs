@@ -3,6 +3,7 @@ using MicroserviceRecetas.Application.Interfaces;
 using RestSharp;
 using System.Configuration;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace MicroserviceRecetas.Application.Services
 {
@@ -19,6 +20,14 @@ namespace MicroserviceRecetas.Application.Services
         public async Task<CitaDTO> GetById(int id)
         {
             var request = new RestRequest($"{_uri}/{id}", Method.Get);
+
+            // Token JWT MicroserviceCitas
+            string token = HttpContext.Current?.Request.Headers["Authorization"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                request.AddHeader("Authorization", token);
+            }
+
             var response = await _client.ExecuteAsync<CitaDTO>(request);
 
             if (response.IsSuccessful && response.Data != null)
@@ -27,7 +36,7 @@ namespace MicroserviceRecetas.Application.Services
             }
             else
             {
-                return null; // O puedes manejar errores dependiendo de la respuesta
+                return null; 
             }
         }
     }

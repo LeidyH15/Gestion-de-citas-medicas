@@ -101,7 +101,7 @@ GET https://localhost:44347/api/Personas/
 | Método | Ruta                           | Descripción                              |
 |--------|--------------------------------|------------------------------------------|
 | GET    | `/api/Citas/{id}`              | Obtener una cita por ID                  |
-| POST   | `/api/Citas`                   | Crear una nueva cita                     |
+| POST   | `/api/Citas/Create`            | Crear una nueva cita                     |
 | PUT    | `/api/Citas/{id}`              | Actualizar una cita                      |
 | DELETE | `/api/Citas/{id}`              | Eliminar una cita                        |
 

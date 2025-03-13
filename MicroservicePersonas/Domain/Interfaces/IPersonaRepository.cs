@@ -15,5 +15,6 @@ namespace MicroservicePersonas.Domain.Interfaces
         Task<string> Create(Persona persona);
         Task<string> Update(int id, Persona persona);
         Task<string> Delete(int id);
+        Task<int> AddAsync(Persona persona);
     }
 }

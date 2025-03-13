@@ -1,18 +1,22 @@
-﻿using MicroserviceRecetas.Application.DTOs;
-using MicroserviceRecetas.Application.Interfaces;
+﻿using MediatR;
+using MicroserviceRecetas.Application.Commands;
+using MicroserviceRecetas.Application.DTOs;
+using MicroserviceRecetas.Application.Queries;
 using System.Threading.Tasks;
 using System.Web.Http;
 
 namespace MicroserviceRecetas.Presentation.Controllers
 {
+    [Authorize]
     [RoutePrefix("api/Receta")]
     public class RecetaController : ApiController
     {
-        private readonly IRecetaService _recetaService;
+        private readonly IMediator _mediator;
 
-        public RecetaController(IRecetaService recetaService)
+        public RecetaController(IMediator mediator)
         {
-            _recetaService = recetaService;
+            _mediator = mediator;
+
         }
 
         /// <summary>
@@ -24,16 +28,10 @@ namespace MicroserviceRecetas.Presentation.Controllers
         [Route("{id:int}")]
         public async Task<IHttpActionResult> GetById(int id)
         {
-            if (id <= 0)
-            {
-                return BadRequest("El ID de la receta debe ser un número positivo.");
-            }
+            if (id <= 0) return BadRequest("El ID de la receta debe ser un número positivo.");
 
-            var receta = await _recetaService.GetById(id);
-            if (receta == null)
-            {
-                return NotFound();
-            }
+            var receta = await _mediator.Send(new GetRecetaByIdQuery(id));
+            if (receta == null) return NotFound();
 
             return Ok(receta);
         }
@@ -46,12 +44,9 @@ namespace MicroserviceRecetas.Presentation.Controllers
         [HttpPost]
         public async Task<IHttpActionResult> Create([FromBody] RecetaDTO recetaDto)
         {
-            if (recetaDto == null)
-            {
-                return BadRequest("La información de la receta no puede ser nula.");
-            }
+            if (recetaDto == null) return BadRequest("La información de la receta no puede ser nula.");
 
-            string msj = await _recetaService.Create(recetaDto);
+            string msj = await _mediator.Send(new CreateRecetaCommand(recetaDto));
             return Created("api/Recetas/", msj);
         }
 
@@ -65,19 +60,13 @@ namespace MicroserviceRecetas.Presentation.Controllers
         [Route("{id}")]
         public async Task<IHttpActionResult> Update(int id, [FromBody] RecetaDTO recetaDto)
         {
-            if (id <= 0)
-            {
-                return BadRequest("El ID de la receta debe ser un número positivo.");
-            }
+            if (id <= 0) return BadRequest("El ID de la receta debe ser un número positivo.");
+            if (recetaDto == null) return BadRequest("La información de la receta no puede ser nula.");
 
-            if (recetaDto == null)
-            {
-                return BadRequest("La información de la receta no puede ser nula.");
-            }
-
-            string msj = await _recetaService.Update(id, recetaDto);
+            string msj = await _mediator.Send(new UpdateRecetaCommand(id, recetaDto));
             return Ok(msj);
         }
+
 
         /// <summary>
         /// Elimina una receta por su ID.
@@ -88,12 +77,9 @@ namespace MicroserviceRecetas.Presentation.Controllers
         [Route("{id}")]
         public async Task<IHttpActionResult> Delete(int id)
         {
-            if (id <= 0)
-            {
-                return BadRequest("El ID de la receta debe ser un número positivo.");
-            }
+            if (id <= 0) return BadRequest("El ID de la receta debe ser un número positivo.");
 
-            string msj = await _recetaService.Delete(id);
+            string msj = await _mediator.Send(new DeleteRecetaCommand(id));
             return Ok(msj);
         }
     }
