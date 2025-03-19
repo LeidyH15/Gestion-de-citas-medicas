@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
-using AutoMapper;
+using MediatR;
+using MicroservicePersonas.Application.Commands;
 using MicroservicePersonas.Application.DTOs;
-using MicroservicePersonas.Application.Mappings;
-using MicroservicePersonas.Application.Services;
-using MicroservicePersonas.Domain.Entities;
-using MicroservicePersonas.Domain.Interfaces;
+using MicroservicePersonas.Application.Queries;
 using Moq;
 using NUnit.Framework;
 using Assert = NUnit.Framework.Assert;
@@ -13,38 +12,32 @@ using Assert = NUnit.Framework.Assert;
 namespace MicroservicePersonas.Test
 {
     [TestFixture]
-    public class PersonaServiceTest
+    public class PersonaCQRSHandlerTest
     {
-        private Mock<IPersonaRepository> _mockPersonaRepository;
-        private PersonaService _personaService;
-        private IMapper _mapper;
+        private Mock<IMediator> _mockMediator;
+        private ClaimsPrincipal _user;
 
         [SetUp]
         public void Setup()
         {
-            _mockPersonaRepository = new Mock<IPersonaRepository>();
-
-            var config = new MapperConfiguration(cfg => cfg.AddProfile(new PersonaProfile()));
-            _mapper = config.CreateMapper();
-
-            _personaService = new PersonaService(_mockPersonaRepository.Object, _mapper);
+            _mockMediator = new Mock<IMediator>();
+            _user = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim("sub", "12345") }));
         }
 
-        // Prueba para el método GetAll
         [Test]
-        public async Task GetAll_ShouldReturnListOfPersonaDTOs()
+        public async Task GetAllPersonas_ShouldReturnListOfPersonaDTOs()
         {
             // Arrange
-            var personas = new List<Persona>
+            var personas = new List<PersonaDTO>
             {
-                new Persona { Id = 1, Nombre = "Daniela", IdTipoPersona = 1 },
-                new Persona { Id = 2, Nombre = "Maria", IdTipoPersona = 2 }
+                new PersonaDTO { Nombre = "Daniela" },
+                new PersonaDTO { Nombre = "Maria" }
             };
 
-            _mockPersonaRepository.Setup(repo => repo.GetAll()).ReturnsAsync(personas);
+            _mockMediator.Setup(m => m.Send(It.IsAny<GetAllPersonasQuery>(), default)).ReturnsAsync(personas);
 
             // Act
-            var result = await _personaService.GetAll();
+            var result = await _mockMediator.Object.Send(new GetAllPersonasQuery());
 
             // Assert
             Assert.IsNotNull(result);
@@ -52,16 +45,15 @@ namespace MicroservicePersonas.Test
             Assert.AreEqual("Daniela", result[0].Nombre);
         }
 
-        // Prueba para GetById
         [Test]
-        public async Task GetById_ShouldReturnPersonaDTO()
+        public async Task GetPersonaById_ShouldReturnPersonaDTO()
         {
             // Arrange
-            var persona = new Persona { Id = 1, Nombre = "Daniela", IdTipoPersona = 1 };
-            _mockPersonaRepository.Setup(repo => repo.GetById(1)).ReturnsAsync(persona);
+            var persona = new PersonaDTO { Nombre = "Daniela" };
+            _mockMediator.Setup(m => m.Send(It.IsAny<GetPersonaByIdQuery>(), default)).ReturnsAsync(persona);
 
             // Act
-            var result = await _personaService.GetById(1);
+            var result = await _mockMediator.Object.Send(new GetPersonaByIdQuery(1));
 
             // Assert
             Assert.IsNotNull(result);
@@ -69,65 +61,44 @@ namespace MicroservicePersonas.Test
         }
 
         [Test]
-        public async Task GetById_ShouldReturnNull_WhenPersonaNotFound()
+        public async Task CreatePersona_ShouldReturnSuccessMessage()
         {
             // Arrange
-            _mockPersonaRepository.Setup(repo => repo.GetById(It.IsAny<int>())).ReturnsAsync((Persona)null);
+            var personaDto = new PersonaDTO { Nombre = "Lina" };
+            _mockMediator.Setup(m => m.Send(It.IsAny<CreatePersonaCommand>(), default)).ReturnsAsync("Success");
 
             // Act
-            var result = await _personaService.GetById(1);
-
-            // Assert
-            Assert.IsNull(result);
-        }
-
-        // Prueba para Create
-        [Test]
-        public async Task Create_ShouldCallRepositoryWithMappedPersona()
-        {
-            // Arrange
-            var personaDto = new PersonaDTO { Nombre = "Lina", Fecha_Nacimiento = System.DateTime.Now };
-            //var persona = new Persona { Id = 0, Nombre = "Pedro", IdTipoPersona = 1 };
-
-            _mockPersonaRepository.Setup(repo => repo.Create(It.IsAny<Persona>())).ReturnsAsync("Success");
-
-            // Act
-            var result = await _personaService.Create(1, personaDto);
+            var result = await _mockMediator.Object.Send(new CreatePersonaCommand(1, personaDto));
 
             // Assert
             Assert.AreEqual("Success", result);
-            _mockPersonaRepository.Verify(repo => repo.Create(It.Is<Persona>(p => p.Nombre == "Lina" && p.IdTipoPersona == 1)), Times.Once);
         }
 
-        // Prueba para Update
         [Test]
-        public async Task Update_ShouldCallRepositoryWithUpdatedPersona()
+        public async Task UpdatePersona_ShouldReturnUpdatedMessage()
         {
             // Arrange
-            var personaDto = new PersonaDTO { Nombre = "Luis", Fecha_Nacimiento = System.DateTime.Now };
-            _mockPersonaRepository.Setup(repo => repo.Update(It.IsAny<int>(), It.IsAny<Persona>())).ReturnsAsync("Updated");
+            var personaDto = new PersonaDTO { Nombre = "Luis" };
+            _mockMediator.Setup(m => m.Send(It.IsAny<UpdatePersonaCommand>(), default)).ReturnsAsync("Updated");
 
             // Act
-            var result = await _personaService.Update(1, personaDto);
+            var result = await _mockMediator.Object.Send(new UpdatePersonaCommand(1, personaDto));
 
             // Assert
             Assert.AreEqual("Updated", result);
-            _mockPersonaRepository.Verify(repo => repo.Update(1, It.Is<Persona>(p => p.Nombre == "Luis")), Times.Once);
         }
 
-        // Prueba para Delete
         [Test]
-        public async Task Delete_ShouldCallRepositoryDelete()
+        public async Task DeletePersona_ShouldReturnDeletedMessage()
         {
             // Arrange
-            _mockPersonaRepository.Setup(repo => repo.Delete(It.IsAny<int>())).ReturnsAsync("Deleted");
+            _mockMediator.Setup(m => m.Send(It.IsAny<DeletePersonaCommand>(), default)).ReturnsAsync("Deleted");
 
             // Act
-            var result = await _personaService.Delete(1);
+            var result = await _mockMediator.Object.Send(new DeletePersonaCommand(1));
 
             // Assert
             Assert.AreEqual("Deleted", result);
-            _mockPersonaRepository.Verify(repo => repo.Delete(1), Times.Once);
         }
     }
 }
